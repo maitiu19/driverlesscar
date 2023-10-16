@@ -2,29 +2,38 @@ class DriverlessCar:
     def __init__(self):
         self.speed = 0
         self.state = "stopped"
-        self.brakeSystem = BrakeSystem()
-        self.lightSensor = LightDetectionSensor()
+        self.brake_system = BrakeSystem()
+        self.lidar_sensor = LightDetectionRanging()
         self.camera = Camera()
 
     def accelerate(self):
-        self.speed += 10
+        self.speed += 1
         print("Accelerating. Speed:", self.speed)
 
     def decelerate(self):
         if self.speed > 0:
-            self.speed -= 10
+            self.speed -= 1
         print("Decelerating. Speed:", self.speed)
 
+    def drive(self, target_speed: int):
+        while self.speed!=target_speed:
+            self.accelerate()
+        #self.speed = 0
+        self.state = "driving"
+        print("Car driving.")
+
     def stop(self):
-        self.speed = 0
+        while self.speed>0:
+            self.brake_system.applyBrake()
+            self.decelerate()
         self.state = "stopped"
-        self.brakeSystem.applyBrake()
+        
         print("Car stopped.")
 
     def park(self):
         self.speed = 0
         self.state = "parked"
-        self.brakeSystem.applyBrake()
+        self.brake_system.applyBrake()
         print("Car parked.")
 
 
@@ -54,14 +63,17 @@ class BrakeLights:
         print("Brake lights turned off.")
 
 
-class LightDetectionSensor:
+class LightDetectionRanging:
     def __init__(self):
-        self.intensity = 0
+        self.object_distance = 0
 
-    def measureIntensity(self):
-        # Simulating light intensity measurement
-        self.intensity = 50
-        print("Light intensity measured:", self.intensity)
+    def measureDistance(self):
+        # Simulating distance measurement
+        self.object_distance = 50 # meters
+
+        # Simulating the distance rate of change from car to object
+        self.distance_rate_change = 10 # meters per second
+        print("Object Distance measured:", self.object_distance)
 
 
 class Camera:
@@ -76,12 +88,11 @@ class Camera:
 
 # Example usage
 car = DriverlessCar()
-car.accelerate()
-car.decelerate()
+car.drive(target_speed=100)
 
-# Simulating the need to stop due to low light intensity
-car.lightSensor.measureIntensity()
-if car.lightSensor.intensity < 10:
+# Simulating the need to stop due to object detected by Lidar
+car.lidar_sensor.measureDistance()
+if car.lidar_sensor.object_distance < 10 or car.lidar_sensor.distance_rate_change>5:
     car.stop()
 
 # Simulating the need to stop due to an obstacle detected by the camera
